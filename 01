@@ -1,0 +1,154 @@
+return {
+  Frames = { 
+    ["1"] = CFrame.new(-888.157959, 35.8438072, -1233.09338, 0.0497854874, -4.97959434e-08, 0.998759925, 3.69290099e-10, 1, 4.98393611e-08, -0.998759925, -2.11244466e-09, 0.0497854874),
+    ["2"] = CFrame.new(242.038025, 11.748023, 370.606934, 0.99968493, -1.57078195e-09, 0.0251005739, 9.90225124e-10, 1, 2.31416557e-08, -0.0251005739, -2.3109509e-08, 0.99968493),
+    ["3"] = CFrame.new(782.060852, 134.622986, -965.592468, -0.0439375229, -4.18754631e-08, 0.999034286, -1.47344119e-08, 1, 4.12679242e-08, -0.999034286, -1.29069724e-08, -0.0439375229),
+    ["4"] = CFrame.new(37.0839195, 1888.1095, -241.565689, -0.0376600325, -0.0120543502, 0.999217927, 8.54155502e-09, 0.999927223, 0.0120629072, -0.999290586, 0.000454298017, -0.0376572907),
+    ["5"] = CFrame.new(-1098.79187, 133.502991, 593.433472, 0.999823034, -7.33118242e-08, 0.0188123677, 7.16833597e-08, 1, 8.72379005e-08, -0.0188123677, -8.58739284e-08, 0.999823034)
+  },
+  FindFirstGroup = function()
+      local API_PREFIX = "https://groups.roblox.com/v1/users/"
+      local API_ENDFIX = tostring(game.Players.LocalPlayer.UserId) .. "/groups/roles"
+      local API_ENDPOINT = API_PREFIX .. API_ENDFIX
+      local API_RESULTSS = game:GetService("HttpService"):JSONDecode(game:HttpGet(API_ENDPOINT))
+
+      if API_RESULTSS.data ~= nil then
+   
+        local DataTable = API_RESULTSS.data
+        local Group;
+        local GroupName;
+
+        for i, v in pairs(DataTable) do
+           Group = v.group.id
+           GroupName = v.group.name
+        end
+
+        if Group == nil then
+           return false, "NO GROUP FOUND", nil
+        else
+           return true, Group, GroupName
+        end
+     end
+  end,
+  DestroyCharacter = function()
+      if game:GetService("Players").LocalPlayer.Character then
+         for i, x in pairs(game:GetService("Players").LocalPlayer.Character:GetChildren()) do
+            if x:IsA("BasePart") then
+               if x.Name ~= "HumanoidRootPart" then
+                  x:Destroy()
+               end
+            end            
+         end
+      end
+   end,
+   CustomNotify = function(Type, Title, Text, Duration)
+      game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = Title,
+        Text = Text,
+        Duration = Duration
+      })
+   end,
+   Proximity = function(DistanceInStuds, SwitchFrames)
+  
+      local Self;
+
+      if game:GetService("Players").LocalPlayer.Character then
+         if game:GetService("Players").LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            Self = game:GetService("Players").LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+         end
+      end
+ 
+      if Self == nil then
+         return;
+      end
+ 
+      local InRange = false
+
+      for i, x in pairs(game:GetService("Players"):GetPlayers()) do
+         if x.Character and x ~= game:GetService("Players").LocalPlayer then
+            if x.Character:FindFirstChild("HumanoidRootPart") then
+
+               local Distance = (Self.Position - x.Character:FindFirstChild("HumanoidRootPart").Position).magnitude
+
+               if Distance < DistanceInStuds then
+                  InRange = true                         
+               end
+            end
+         end
+      end
+                                            
+      if InRange then
+         SwitchFrames()                                
+      end
+   end,
+   Crash = function(Table)
+       Table.ProxFunc(Table.ProxRange, Table.FrameSwitchFunc)
+   
+       if _G.Complete == nil then
+          _G.Complete = false
+       end
+
+       local MainEvent = game:GetService("ReplicatedStorage"):WaitForChild("MainEvent")
+       local Backpack = game.Players.LocalPlayer.Backpack:GetChildren()
+       local Character = game.Players.LocalPlayer.Character:GetChildren()
+       local Tools = 0   
+
+       for i, v in pairs(Backpack) do
+          if v.Name == "[SprayCan]" then
+             v.Parent = game.Players.LocalPlayer.Character
+          end
+       end
+    
+       for i, v in pairs(Character) do
+          if v.Name == "[SprayCan]" then
+             Tools = Tools + 1
+          end
+       end
+
+       if Tools > 750 and Tools < 1250 then
+          warn("COUNT:", Tools)
+       elseif 1248 < Tools and not _G.Complete then
+          print("COMPLETE:", Tools)
+       end
+ 
+       if Tools <= 1249 and not _G.Complete then
+          game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = Table.CurrentFrame
+                  
+          MainEvent:FireServer("JoinCrew", tostring(Table.GroupID))
+          MainEvent:FireServer("LeaveCrew")
+       else
+          if not _G.Complete then
+             _G.Complete = true
+             Table.DestroyFunc()
+          end
+       end
+       
+    end,
+    God = function(DestroyFunc)
+       DestroyFunc()
+                      
+       game:GetService("Players").LocalPlayer.CharacterAdded:Wait()
+          
+       local Stats = game.Players.LocalPlayer.Character:WaitForChild("BodyEffects", 30)
+       local Spoof = Instance.new("Folder", game.Players.LocalPlayer.Character)
+       Spoof.Name = "FULLY_LOADED_CHAR"  
+         
+       if Stats ~= nil then
+          
+          if Stats:FindFirstChild("Dead") then
+             Stats:FindFirstChild("Dead"):Destroy()
+             Instance.new("BoolValue", Stats)
+          end
+         
+          if Stats:FindFirstChild("BreakingParts") then
+              Stats:FindFirstChild("BreakingParts"):Destroy()
+          end
+          
+          Instance.new("Folder", game.Players.LocalPlayer.Character).Name = "GOD_MODE"
+             
+          return true
+       end
+          
+       return false
+    end
+}
